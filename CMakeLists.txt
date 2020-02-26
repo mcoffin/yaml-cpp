@@ -33,7 +33,7 @@ option(YAML_CPP_INSTALL "Enable generation of install target" ON)
 option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
 
 # Set minimum C++ to 2011 standards
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --> Apple
