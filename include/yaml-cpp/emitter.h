@@ -7,10 +7,13 @@
 #pragma once
 #endif
 
+#include <cmath>
 #include <cstddef>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <type_traits>
 
 #include "yaml-cpp/binary.h"
 #include "yaml-cpp/dll.h"
@@ -153,7 +156,27 @@ inline Emitter& Emitter::WriteStreamable(T value) {
 
   std::stringstream stream;
   SetStreamablePrecision<T>(stream);
-  stream << value;
+
+  bool special = false;
+  if (std::is_floating_point<T>::value) {
+    if ((std::numeric_limits<T>::has_quiet_NaN ||
+         std::numeric_limits<T>::has_signaling_NaN) &&
+        std::isnan(value)) {
+      special = true;
+      stream << ".nan";
+    } else if (std::numeric_limits<T>::has_infinity && std::isinf(value)) {
+      special = true;
+      if (std::signbit(value)) {
+        stream << "-.inf";
+      } else {
+        stream << ".inf";
+      }
+    }
+  }
+
+  if (!special) {
+    stream << value;
+  }
   m_stream << stream.str();
 
   StartedScalar();
