@@ -1,6 +1,13 @@
 # 3.5 is actually available almost everywhere, but this a good minimum
 cmake_minimum_required(VERSION 3.4)
-project(YAML_CPP VERSION 0.6.3 LANGUAGES CXX)
+
+# enable MSVC_RUNTIME_LIBRARY target property
+# see https://cmake.org/cmake/help/latest/policy/CMP0091.html
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
+project(YAML_CPP VERSION 0.7.0 LANGUAGES CXX)
 
 include(CMakePackageConfigHelpers)
 include(CMakeDependentOption)
@@ -34,10 +41,11 @@ endif()
 set(build-shared $<BOOL:${YAML_BUILD_SHARED_LIBS}>)
 set(build-windows-dll $<AND:$<BOOL:${CMAKE_HOST_WIN32}>,${build-shared}>)
 set(not-msvc $<NOT:$<CXX_COMPILER_ID:MSVC>>)
+set(msvc-shared_rt $<BOOL:${YAML_MSVC_SHARED_RT}>)
 
 if (NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
   set(CMAKE_MSVC_RUNTIME_LIBRARY
-    MultiThreaded$<$<CONFIG:Debug>:Debug>$<${build-shared}:DLL>)
+    MultiThreaded$<$<CONFIG:Debug>:Debug>$<${msvc-shared_rt}:DLL>)
 endif()
 
 set(contrib-pattern "src/contrib/*.cpp")
@@ -109,11 +117,15 @@ target_sources(yaml-cpp
     $<$<BOOL:${YAML_CPP_BUILD_CONTRIB}>:${yaml-cpp-contrib-sources}>
     ${yaml-cpp-sources})
 
+if (NOT DEFINED CMAKE_DEBUG_POSTFIX)
+  set(CMAKE_DEBUG_POSTFIX "d")
+endif()
+
 set_target_properties(yaml-cpp PROPERTIES
   VERSION "${PROJECT_VERSION}"
   SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
   PROJECT_LABEL "yaml-cpp ${yaml-cpp-label-postfix}"
-  DEBUG_POSTFIX d)
+  DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 
 configure_package_config_file(
   "${PROJECT_SOURCE_DIR}/yaml-cpp-config.cmake.in"
@@ -156,6 +168,7 @@ endif()
 if (YAML_CPP_CLANG_FORMAT_EXE)
   add_custom_target(format
     COMMAND clang-format --style=file -i $<TARGET_PROPERTY:yaml-cpp,SOURCES>
+    COMMAND_EXPAND_LISTS
     COMMENT "Running clang-format"
     VERBATIM)
 endif()

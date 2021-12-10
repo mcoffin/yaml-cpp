@@ -151,7 +151,8 @@ inline UtfIntroCharType IntroCharTypeOf(std::istream::int_type ch) {
 
 inline char Utf8Adjust(unsigned long ch, unsigned char lead_bits,
                        unsigned char rshift) {
-  const unsigned char header = static_cast<unsigned char>(((1 << lead_bits) - 1) << (8 - lead_bits));
+  const unsigned char header =
+      static_cast<unsigned char>(((1 << lead_bits) - 1) << (8 - lead_bits));
   const unsigned char mask = (0xFF >> (lead_bits + 1));
   return static_cast<char>(
       static_cast<unsigned char>(header | ((ch >> rshift) & mask)));
@@ -273,7 +274,7 @@ char Stream::get() {
 // . Extracts 'n' characters from the stream and updates our position
 std::string Stream::get(int n) {
   std::string ret;
-  if(n > 0) {
+  if (n > 0) {
     ret.reserve(static_cast<std::string::size_type>(n));
     for (int i = 0; i < n; i++)
       ret += get();
@@ -349,7 +350,9 @@ void Stream::StreamInUtf16() const {
     // Trailing (low) surrogate...ugh, wrong order
     QueueUnicodeCodepoint(m_readahead, CP_REPLACEMENT_CHARACTER);
     return;
-  } else if (ch >= 0xD800 && ch < 0xDC00) {
+  }
+
+  if (ch >= 0xD800 && ch < 0xDC00) {
     // ch is a leading (high) surrogate
 
     // Four byte UTF-8 code point
@@ -374,11 +377,10 @@ void Stream::StreamInUtf16() const {
           // Easiest case: queue the codepoint and return
           QueueUnicodeCodepoint(m_readahead, ch);
           return;
-        } else {
-          // Start the loop over with the new high surrogate
-          ch = chLow;
-          continue;
         }
+        // Start the loop over with the new high surrogate
+        ch = chLow;
+        continue;
       }
 
       // Select the payload bits from the high surrogate
