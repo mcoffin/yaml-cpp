@@ -93,7 +93,7 @@ endif()
 
 target_compile_options(yaml-cpp
   PRIVATE
-    $<${not-msvc}:-Wall -Wextra -Wshadow -Weffc++ -Wno-long-long -fPIC -march=i686 -m32>
+    $<${not-msvc}:-Wall -Wextra -Wshadow -Weffc++ -Wno-long-long -fPIC>
     $<${not-msvc}:-pedantic -pedantic-errors>
 
     $<$<AND:${backport-msvc-runtime},${msvc-rt-mtd-static}>:-MTd>
